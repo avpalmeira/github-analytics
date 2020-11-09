@@ -1,30 +1,85 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import moment from 'moment';
+import api from './services/api';
 import './App.css';
 
 function App() {
-  const githubApiUrl = process.env.REACT_APP_GITHUB_API_URL;
-  const accessToken = process.env.REACT_APP_GITHUB_ACCESS_TOKEN;
-  const api = axios.create({
-    baseURL: githubApiUrl,
-    headers: { authorization: `Bearer ${accessToken}` }
-  });
+  const [ issues, setIssues ] = useState([]);
+  const [ pullRequests, setPullRequests ] = useState([]);
 
-  const [ login, setLogin ] = useState("");
+  const getAverageDuration = (objects) => {
+    let averageDuration = 10;
+    if (objects[0] && objects[0].node) {
+      const mapOfDurations = objects.map((obj) => {
+        return (new Date(obj.node.closedAt) - new Date(obj.node.createdAt));
+      });
+      const sumOfDurations = mapOfDurations.reduce((total, duration) => total + duration, 0);
+      averageDuration = sumOfDurations / objects.length;
+    }
+    const duration = moment.duration(averageDuration);
+    return `${duration.get('days')}days ${duration.get('hours')}h${duration.get('minutes')}m`;
+  }
 
   useEffect(() => {
-    const fetchViewerLogin = async () => {
-      const response = await api.post('/', { query: "query { viewer { login } }" });
-      setLogin(response.data.data.viewer.login);
+    const fetchIssues = async () => {
+      const issuesQuery = `
+      query IssuesClosingTime { 
+        repositoryOwner(login: "google") {
+          repository(name: "web-stories-wp") {
+            issues(last: 100, states: CLOSED) {
+              totalCount
+              edges {
+                node {
+                  createdAt
+                  closedAt
+                }
+              }
+            }
+          }
+        }
+      }`;
+      const res = await api.post('', { query: issuesQuery });
+
+      // refactor!
+      const retrievedIssues = res.data.data.repositoryOwner.repository.issues.edges;
+      setIssues(retrievedIssues);
     }
-    fetchViewerLogin();
-  });
+    const fetchPullRequests = async () => {
+      const pullRequestsQuery = `
+      query IssuesClosingTime { 
+        repositoryOwner(login: "google") {
+          repository(name: "web-stories-wp") {
+            pullRequests(last: 100, states: CLOSED) {
+              totalCount
+              edges {
+                node {
+                  createdAt
+                  closedAt
+                  additions
+                  deletions
+                }
+              }
+            }
+          }
+        }
+      }`;
+      const res = await api.post('', { query: pullRequestsQuery });
+
+      // refactor!
+      const retrievedPRs = res.data.data.repositoryOwner.repository.pullRequests.edges;
+      setPullRequests(retrievedPRs);
+    }
+    fetchIssues();
+    fetchPullRequests();
+  }, []);
 
   return (
     <div className="App">
       <header className="App-header">
         <p>Querying data from the Github API:</p>
-        <p>Username - {login}</p>
+        <p>Number of issues: {issues.length}</p>
+        <p>Average Duration of Closing of Issues: {getAverageDuration(issues)}</p>
+        <p>Average Duration of Merged PRs: {getAverageDuration(pullRequests)}</p>
       </header>
     </div>
   );
