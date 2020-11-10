@@ -7,9 +7,25 @@ function App() {
   const [ issues, setIssues ] = useState([]);
   const [ pullRequests, setPullRequests ] = useState([]);
 
-  const getAverageDuration = (objects) => {
+  const formatDayHourMinute = (duration) => {
+    return `${duration.get('days')}days ${duration.get('hours')}h${duration.get('minutes')}m`;
+  }
+
+  const formatHour = (duration) => {
+    return `${duration.get('hours')}h`;
+  }
+
+  // use same method as above with new params: size
+  const getAverageDuration = (objects, size = "") => {
     let averageDuration = 10;
     if (objects[0] && objects[0].node) {
+      if (size === "large") {
+        objects = objects.filter((obj) => obj.node.additions + obj.node.deletions > 1000);
+      } else if (size === "medium") {
+        objects = objects.filter((obj) => obj.node.additions + obj.node.deletions <= 1000);
+      } else if (size === "small") {
+        objects = objects.filter((obj) => obj.node.additions + obj.node.deletions <= 100);
+      }
       const mapOfDurations = objects.map((obj) => {
         return (new Date(obj.node.closedAt) - new Date(obj.node.createdAt));
       });
@@ -17,7 +33,7 @@ function App() {
       averageDuration = sumOfDurations / objects.length;
     }
     const duration = moment.duration(averageDuration);
-    return `${duration.get('days')}days ${duration.get('hours')}h${duration.get('minutes')}m`;
+    return duration;
   }
 
   useEffect(() => {
@@ -78,8 +94,11 @@ function App() {
       <header className="App-header">
         <p>Querying data from the Github API:</p>
         <p>Number of issues: {issues.length}</p>
-        <p>Average Duration of Closing of Issues: {getAverageDuration(issues)}</p>
-        <p>Average Duration of Merged PRs: {getAverageDuration(pullRequests)}</p>
+        <p>Average Duration of Closing of Issues: {formatDayHourMinute(getAverageDuration(issues))}</p>
+        <p>Average Duration of Merged PRs: {formatDayHourMinute(getAverageDuration(pullRequests))}</p>
+        <p>Average Duration of Small PRs: {formatHour(getAverageDuration(pullRequests, "small"))}</p>
+        <p>Average Duration of Medium PRs: {formatHour(getAverageDuration(pullRequests, "medium"))}</p>
+        <p>Average Duration of Large PRs: {formatHour(getAverageDuration(pullRequests, "large"))}</p>
       </header>
     </div>
   );
