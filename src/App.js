@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Fragment } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
 import moment from 'moment';
 import api from './services/api';
@@ -7,54 +7,29 @@ import './App.css';
 function App() {
   const [ issues, setIssues ] = useState([]);
   const [ pullRequests, setPullRequests ] = useState([]);
+  const [ prHistory, setPRHistory ] = useState([]);
 
-  const CustomTooltip = ({ active, payload }) => {
-    if (active) {
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload) {
       return (
         <div style={{ border: "1px solid black", padding: 10, backgroundColor: "white" }}>
+          <div style={{ textAlign: "center", fontWeight: "bold" }}>Pull Requests : {label}</div>
           <div style={{ display: "flex", fontSize: 16 }}>
-            <span style={{ marginRight: 10 }}>Average Time</span>
-            <span>{payload[0].value}</span>
+            <span style={{ marginRight: 10 }}>Merged</span>
+            <span>{payload[0].payload.merged}</span>
           </div>
           <div style={{ display: "flex", fontSize: 16 }}>
-            <span style={{ marginRight: 10 }}>Pull Requests</span>
-            <span>{payload[0].payload.prs}</span>
+            <span style={{ marginRight: 10 }}>Opened</span>
+            <span>{payload[0].payload.open}</span>
+          </div>
+          <div style={{ display: "flex", fontSize: 16 }}>
+            <span style={{ marginRight: 10 }}>Closed</span>
+            <span>{payload[0].payload.closed}</span>
           </div>
         </div>
       );
     }
     return null;
-  }
-
-  const issuesData = () => {
-    const data = [
-      {
-        name: "A",
-        issues: 20,
-        prs: 4
-      },
-      {
-        name: "B",
-        issues: 31,
-        prs: 6
-      },
-      {
-        name: "C",
-        issues: 12,
-        prs: 5
-      },
-      {
-        name: "D",
-        issues: 29,
-        prs: 9
-      },
-    ];
-    return data;
-  }
-
-  const pullRequestsData = () => {
-    const data = [];
-    return data;
   }
 
   const formatDayHourMinute = (duration) => {
@@ -90,10 +65,53 @@ function App() {
       averageDuration = sumOfDurations / objects.length;
     }
     const duration = moment.duration(averageDuration);
-    return duration;
+    return { quantity: objects.length, duration };
   }
 
   useEffect(() => {
+
+    const generatePRHistoryEmpty = () => {
+      const history = {};
+      const end = moment();
+      let current = moment().subtract(1, 'month');
+      while (current.format('DD.MM') !== end.format('DD.MM')) {
+        let key = current.format('DD.MM');
+        history[current.format(key)] = { key, open: 0, merged: 0, closed: 0 };
+        current = current.add(1, 'day');
+      }
+      return history;
+    }
+
+    const pullRequestHistory = (objects) => {
+      const response = generatePRHistoryEmpty();
+      if (objects[0] && objects[0].node) {
+        const oneMonthAgo = moment().subtract(15, 'days');
+        objects.forEach((obj) => {
+          let created = moment(obj.node.createdAt);
+          let merged = moment(obj.node.mergedAt);
+          let closed = moment(obj.node.closedAt);
+          if (created.isAfter(oneMonthAgo) && response[created.format('DD.MM')]) {
+            response[created.format('DD.MM')]['open']++;
+          }
+          if (merged && merged.isAfter(oneMonthAgo) && response[merged.format('DD.MM')]) {
+            response[merged.format('DD.MM')]['merged']++;
+          }
+          if (closed && closed.isAfter(oneMonthAgo) && response[closed.format('DD.MM')]) {
+            response[closed.format('DD.MM')]['closed']++;
+          }
+        });
+      }
+      return response;
+    }
+
+    const clearPRHistoryKeys = (history) => {
+      const response = [];
+      for (let key in history) {
+        response.push(history[key]);
+      }
+      return response;
+    }
+
     const fetchIssues = async () => {
       const issuesQuery = `
       query IssuesClosingTime { 
@@ -114,7 +132,7 @@ function App() {
       }`;
       const res = await api.post('', { query: issuesQuery });
 
-      // refactor!
+      // refactor! generate array and push data
       const retrievedIssues = res.data.data.repositoryOwner.repository.issues.edges;
       setIssues(retrievedIssues);
     }
@@ -130,6 +148,7 @@ function App() {
                   state
                   createdAt
                   closedAt
+                  mergedAt
                   additions
                   deletions
                 }
@@ -140,9 +159,11 @@ function App() {
       }`;
       const res = await api.post('', { query: pullRequestsQuery });
 
-      // refactor!
+      // refactor! generate array and push data
       const retrievedPRs = res.data.data.repositoryOwner.repository.pullRequests.edges;
       setPullRequests(retrievedPRs);
+      const retrievedHistory = clearPRHistoryKeys(pullRequestHistory(retrievedPRs));
+      setPRHistory(retrievedHistory);
     }
     fetchIssues();
     fetchPullRequests();
@@ -152,16 +173,19 @@ function App() {
     <div className="App">
       <header className="App-header">
         <p>Querying data from the Github API:</p>
-        <p>Number of issues: {issues.length}</p>
-        <LineChart width={600} height={400} margin={{ left: -20 }} data={issuesData()}>
-          <Line type="monotone" dataKey="issues" stroke="#888" />
-          <CartesianGrid stroke="#ccc" />
-          <XAxis dataKey="name" />
+        {prHistory !== [] ? (
+        <LineChart width={900} height={400} margin={{ left: -20 }} data={prHistory}>
+          <Line type="monotone" dataKey="open" stroke="#8884d8" />
+          <Line type="monotone" dataKey="closed" stroke="#82ca9d" />
+          <Line type="monotone" dataKey="merged" stroke="#8884d8" />
+          <XAxis dataKey="key" />
           <YAxis />
+          <CartesianGrid stroke="#ccc" />
           <Tooltip content={<CustomTooltip />} />
         </LineChart>
-        {/* <p>Average Duration of Closing of Issues: {formatDayHourMinute(getAverageDuration(issues))}</p> */}
-        {/* <p>Average Duration of Merged PRs: {formatDayHourMinute(getAverageDuration(pullRequests, "", "MERGED"))}</p> */}
+        ) : null }
+        <p>Average Duration of Closing of Issues: {formatDayHourMinute(getAverageDuration(issues).duration)}</p>
+        <p>Average Duration of Merged PRs: {formatDayHourMinute(getAverageDuration(pullRequests, "", "MERGED").duration)}</p>
         {/* <p>Average Duration of Small PRs: {formatHour(getAverageDuration(pullRequests, "small", "MERGED"))}</p> */}
         {/* <p>Average Duration of Medium PRs: {formatHour(getAverageDuration(pullRequests, "medium", "MERGED"))}</p> */}
         {/* <p>Average Duration of Large PRs: {formatHour(getAverageDuration(pullRequests, "large", "MERGED"))}</p> */}
