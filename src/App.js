@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
 import moment from 'moment';
+import { Card, Col, Layout, Row } from 'antd';
 import api from './services/api';
+import logo from './assets/logo.png';
+import 'antd/dist/antd.css';
 import './App.css';
 
 function App() {
@@ -169,29 +172,62 @@ function App() {
     fetchPullRequests();
   }, []);
 
+  const { Header, Content, Sider } = Layout;
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <p>Querying data from the Github API:</p>
-        {prHistory !== [] ? (
-        <LineChart width={900} height={400} margin={{ left: -20 }} data={prHistory}>
-          <Line type="monotone" dataKey="open" stroke="#8884d8" />
-          <Line type="monotone" dataKey="closed" stroke="#82ca9d" />
-          <Line type="monotone" dataKey="merged" stroke="#8884d8" />
-          <XAxis dataKey="key" />
-          <YAxis />
-          <CartesianGrid stroke="#ccc" />
-          <Tooltip content={<CustomTooltip />} />
-        </LineChart>
-        ) : null }
-        <p>Average Duration of Closing of Issues: {formatDayHourMinute(getAverageDuration(issues).duration)}</p>
-        <p>Average Duration of Merged PRs: {formatDayHourMinute(getAverageDuration(pullRequests, "", "MERGED").duration)}</p>
-        {/* <p>Average Duration of Small PRs: {formatHour(getAverageDuration(pullRequests, "small", "MERGED"))}</p> */}
-        {/* <p>Average Duration of Medium PRs: {formatHour(getAverageDuration(pullRequests, "medium", "MERGED"))}</p> */}
-        {/* <p>Average Duration of Large PRs: {formatHour(getAverageDuration(pullRequests, "large", "MERGED"))}</p> */}
-      </header>
-    </div>
+    <Layout className="main">
+      <Sider className="sidebar">
+        <img src={logo} alt="" width={60}/>
+      </Sider>
+      <Layout>
+        <Header className="topnav">Header</Header>
+        <Content className="content">
+          <Card title="Average Merge Time by Pull Request Size">
+            <p>Content</p>
+          </Card>
+          <Row gutter={30} style={{ marginTop: 30 }}>
+            <Col span={12}>
+              <Card title="Average Pull Request Merge Time">
+                Time
+              </Card>
+            </Col>
+            <Col span={12}>
+              <Card title="Average Issue Close Time">
+                Time
+              </Card>
+            </Col>
+          </Row>
+          <Card title="Month Summary" style={{ marginTop: 30 }}>
+            <p>Content</p>
+          </Card>
+        </Content>
+      </Layout>
+    </Layout>
   );
+
+  // return (
+  //   <div className="App">
+  //     <header className="App-header">
+  //       <p>Querying data from the Github API:</p>
+  //       {prHistory !== [] ? (
+  //       <LineChart width={900} height={400} margin={{ left: -20 }} data={prHistory}>
+  //         <Line type="monotone" dataKey="open" stroke="#8884d8" />
+  //         <Line type="monotone" dataKey="closed" stroke="#82ca9d" />
+  //         <Line type="monotone" dataKey="merged" stroke="#8884d8" />
+  //         <XAxis dataKey="key" />
+  //         <YAxis />
+  //         <CartesianGrid stroke="#ccc" />
+  //         <Tooltip content={<CustomTooltip />} />
+  //       </LineChart>
+  //       ) : null }
+  //       <p>Average Duration of Closing of Issues: {formatDayHourMinute(getAverageDuration(issues).duration)}</p>
+  //       <p>Average Duration of Merged PRs: {formatDayHourMinute(getAverageDuration(pullRequests, "", "MERGED").duration)}</p>
+  //       <p>Average Duration of Small PRs: {formatHour(getAverageDuration(pullRequests, "small", "MERGED").duration)}</p>
+  //       <p>Average Duration of Medium PRs: {formatHour(getAverageDuration(pullRequests, "medium", "MERGED").duration)}</p>
+  //       <p>Average Duration of Large PRs: {formatHour(getAverageDuration(pullRequests, "large", "MERGED").duration)}</p>
+  //     </header>
+  //   </div>
+  // );
 }
 
 export default App;

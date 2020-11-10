@@ -11,3 +11,26 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.main {
+  height: 100vh;
+  background-color: #F1F2F5;
+}
+
+.topnav {
+  background-color: white !important;
+  border-bottom: 1px solid #ccc;
+  padding-left: 30px !important;
+}
+
+.sidebar {
+  max-width: 80px !important;
+  min-width: 80px !important;
+  width: 80px !important;
+  background-color: #30313F !important;
+  padding: 10px;
+}
+
+.content {
+  padding: 30px;
+}
