@@ -16,15 +16,22 @@ function App() {
   }
 
   // use same method as above with new params: size
-  const getAverageDuration = (objects, size = "") => {
+  const getAverageDuration = (objects, size = "", state = "CLOSED") => {
     let averageDuration = 10;
     if (objects[0] && objects[0].node) {
+      objects = objects.filter((obj) => obj.node.state === state);
       if (size === "large") {
-        objects = objects.filter((obj) => obj.node.additions + obj.node.deletions > 1000);
+        objects = objects.filter((obj) => {
+          return obj.node.additions + obj.node.deletions > 1000
+        });
       } else if (size === "medium") {
-        objects = objects.filter((obj) => obj.node.additions + obj.node.deletions <= 1000);
+        objects = objects.filter((obj) => {
+          return obj.node.additions + obj.node.deletions <= 1000
+        });
       } else if (size === "small") {
-        objects = objects.filter((obj) => obj.node.additions + obj.node.deletions <= 100);
+        objects = objects.filter((obj) => {
+          return obj.node.additions + obj.node.deletions <= 100
+        });
       }
       const mapOfDurations = objects.map((obj) => {
         return (new Date(obj.node.closedAt) - new Date(obj.node.createdAt));
@@ -42,10 +49,11 @@ function App() {
       query IssuesClosingTime { 
         repositoryOwner(login: "google") {
           repository(name: "web-stories-wp") {
-            issues(last: 100, states: CLOSED) {
+            issues(last: 100) {
               totalCount
               edges {
                 node {
+                  state
                   createdAt
                   closedAt
                 }
@@ -65,10 +73,11 @@ function App() {
       query IssuesClosingTime { 
         repositoryOwner(login: "google") {
           repository(name: "web-stories-wp") {
-            pullRequests(last: 100, states: CLOSED) {
+            pullRequests(last: 100) {
               totalCount
               edges {
                 node {
+                  state
                   createdAt
                   closedAt
                   additions
@@ -95,10 +104,10 @@ function App() {
         <p>Querying data from the Github API:</p>
         <p>Number of issues: {issues.length}</p>
         <p>Average Duration of Closing of Issues: {formatDayHourMinute(getAverageDuration(issues))}</p>
-        <p>Average Duration of Merged PRs: {formatDayHourMinute(getAverageDuration(pullRequests))}</p>
-        <p>Average Duration of Small PRs: {formatHour(getAverageDuration(pullRequests, "small"))}</p>
-        <p>Average Duration of Medium PRs: {formatHour(getAverageDuration(pullRequests, "medium"))}</p>
-        <p>Average Duration of Large PRs: {formatHour(getAverageDuration(pullRequests, "large"))}</p>
+        <p>Average Duration of Merged PRs: {formatDayHourMinute(getAverageDuration(pullRequests, "", "MERGED"))}</p>
+        <p>Average Duration of Small PRs: {formatHour(getAverageDuration(pullRequests, "small", "MERGED"))}</p>
+        <p>Average Duration of Medium PRs: {formatHour(getAverageDuration(pullRequests, "medium", "MERGED"))}</p>
+        <p>Average Duration of Large PRs: {formatHour(getAverageDuration(pullRequests, "large", "MERGED"))}</p>
       </header>
     </div>
   );
