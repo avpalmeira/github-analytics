@@ -20,7 +20,11 @@ code {
 .topnav {
   background-color: white !important;
   border-bottom: 1px solid #ccc;
-  padding-left: 30px !important;
+  line-height: initial !important;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 30px !important;
+  height: 120px !important;
 }
 
 .sidebar {

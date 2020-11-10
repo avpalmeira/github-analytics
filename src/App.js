@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
 import moment from 'moment';
-import { Card, Col, Layout, Row } from 'antd';
+import { Card, Col, Input, Layout, Row } from 'antd';
 import api from './services/api';
 import logo from './assets/logo.png';
 import 'antd/dist/antd.css';
@@ -173,6 +173,7 @@ function App() {
   }, []);
 
   const { Header, Content, Sider } = Layout;
+  const { Search } = Input;
 
   return (
     <Layout className="main">
@@ -180,7 +181,10 @@ function App() {
         <img src={logo} alt="" width={60}/>
       </Sider>
       <Layout>
-        <Header className="topnav">Header</Header>
+        <Header className="topnav">
+          <Input placeholder="Repository Owner" style={{ width: "50%", marginBottom: 20 }} />
+          <Search placeholder="Repository Name" enterButton style={{ width: "50%" }} />
+        </Header>
         <Content className="content">
           <Card title="Average Merge Time by Pull Request Size">
             <p>Content</p>
