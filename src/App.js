@@ -1,16 +1,6 @@
 import React, { useState } from 'react';
-import {
-  LineChart,
-  Line,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
 import moment from 'moment';
 import {
-  Card,
   Col,
   Input,
   Layout,
@@ -20,6 +10,7 @@ import api from './services/api';
 import {
   AverageDurationCard,
   BarChartCard,
+  LineChartCard,
 } from './components';
 import logo from './assets/logo.png';
 import 'antd/dist/antd.css';
@@ -30,27 +21,15 @@ function App() {
   const [ repoOwner, setRepoOwner ] = useState("");
   const [ repository, setRepository ] = useState("");
 
-  const CustomTooltip1 = ({ active, payload, label }) => {
-    if (active && payload) {
-      return (
-        <div style={{ border: "1px solid black", padding: 10, backgroundColor: "white" }}>
-          <div style={{ textAlign: "center", fontWeight: "bold" }}>Pull Requests : {label}</div>
-          <div style={{ display: "flex", fontSize: 16 }}>
-            <span style={{ marginRight: 10 }}>Merged</span>
-            <span>{payload[0].payload.merged}</span>
-          </div>
-          <div style={{ display: "flex", fontSize: 16 }}>
-            <span style={{ marginRight: 10 }}>Opened</span>
-            <span>{payload[0].payload.open}</span>
-          </div>
-          <div style={{ display: "flex", fontSize: 16 }}>
-            <span style={{ marginRight: 10 }}>Closed</span>
-            <span>{payload[0].payload.closed}</span>
-          </div>
-        </div>
-      );
-    }
-    return null;
+  const { Header, Content, Sider } = Layout;
+  const { Search } = Input;
+
+  const getAveragePRDurationBySize = () => {
+    const response = [];
+    response[0] = { name: 'Small', ...getAverageDuration(pullRequests, "small", "MERGED") };
+    response[1] = { name: 'Medium', ...getAverageDuration(pullRequests, "medium", "MERGED") };
+    response[2] = { name: 'Large', ...getAverageDuration(pullRequests, "large", "MERGED") };
+    return response;
   }
 
   // use same method as above with new params: size
@@ -187,17 +166,6 @@ function App() {
     fetchPullRequests();
   }
 
-  const { Header, Content, Sider } = Layout;
-  const { Search } = Input;
-
-  const getAveragePRDurationBySize = () => {
-    const response = [];
-    response[0] = { name: 'Small', ...getAverageDuration(pullRequests, "small", "MERGED") };
-    response[1] = { name: 'Medium', ...getAverageDuration(pullRequests, "medium", "MERGED") };
-    response[2] = { name: 'Large', ...getAverageDuration(pullRequests, "large", "MERGED") };
-    return response;
-  }
-
   return (
     <Layout className="main">
       <Sider className="sidebar">
@@ -238,21 +206,11 @@ function App() {
               />
             </Col>
           </Row>
-          <Card title="Month Summary" style={{ marginTop: 30 }}>
-            {pullRequests.length > 0 ? (
-              <ResponsiveContainer width="100%" height={400}>
-                <LineChart margin={{ left: -20 }} data={clearPRHistoryKeys(pullRequestHistory(pullRequests))}>
-                  <CartesianGrid stroke="#ccc" />
-                  <XAxis dataKey="key" />
-                  <YAxis />
-                  <Tooltip content={<CustomTooltip1 />} />
-                  <Line type="monotone" dataKey="open" stroke="#8884d8" />
-                  <Line type="monotone" dataKey="closed" stroke="#82ca9d" />
-                  <Line type="monotone" dataKey="merged" stroke="#8884d8" />
-                </LineChart>
-              </ResponsiveContainer>
-            ) : <p className="avg-time-card-text">Not enough data to show results</p>}
-          </Card>
+          <LineChartCard
+            title="Month Summary"
+            originData={pullRequests}
+            data={clearPRHistoryKeys(pullRequestHistory(pullRequests))}
+          />
         </Content>
       </Layout>
     </Layout>

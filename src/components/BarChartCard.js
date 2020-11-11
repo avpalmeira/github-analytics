@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {
   BarChart,
   Bar,
@@ -49,5 +50,10 @@ const BarChartCard = (props) => {
     </Card>
   );
 }
+
+BarChartCard.propTypes = {
+  title: PropTypes.string,
+  data: PropTypes.array,
+};
 
 export default BarChartCard;
