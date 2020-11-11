@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import {
-  BarChart,
-  Bar,
   LineChart,
   Line,
   CartesianGrid,
@@ -20,7 +18,8 @@ import {
 } from 'antd';
 import api from './services/api';
 import {
-  AverageDuration,
+  AverageDurationCard,
+  BarChartCard,
 } from './components';
 import logo from './assets/logo.png';
 import 'antd/dist/antd.css';
@@ -47,25 +46,6 @@ function App() {
           <div style={{ display: "flex", fontSize: 16 }}>
             <span style={{ marginRight: 10 }}>Closed</span>
             <span>{payload[0].payload.closed}</span>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  }
-
-  const CustomTooltip2 = ({ active, payload, label }) => {
-    if (active && payload) {
-      return (
-        <div style={{ border: "1px solid black", padding: 10, backgroundColor: "white" }}>
-          <div style={{ textAlign: "center", fontWeight: "bold" }}>{label}</div>
-          <div style={{ display: "flex", fontSize: 16 }}>
-            <span style={{ marginRight: 10 }}>Average Time</span>
-            <span>{payload[0].payload.duration}h</span>
-          </div>
-          <div style={{ display: "flex", fontSize: 16 }}>
-            <span style={{ marginRight: 10 }}>Pull Requests</span>
-            <span>{payload[0].payload.quantity}</span>
           </div>
         </div>
       );
@@ -240,28 +220,19 @@ function App() {
             style={{ width: "50%" }} />
         </Header>
         <Content className="content">
-          <Card title="Average Merge Time by Pull Request Size">
-            {getAveragePRDurationBySize()[0].duration ? (
-            <ResponsiveContainer width="100%" height={400}>
-              <BarChart width={900} height={400} data={getAveragePRDurationBySize()}>
-                <CartesianGrid stroke="#ccc" />
-                <XAxis dataKey="name"/>
-                <YAxis/>
-                <Tooltip content={<CustomTooltip2 />} />
-                <Bar dataKey="duration" fill="#8884d8"/>
-              </BarChart>
-            </ResponsiveContainer>
-            ) : <p className="avg-time-card-text">Not enough data to show results</p>}
-          </Card>
+          <BarChartCard
+            title="Average Merge Time by Pull Request Size"
+            data={getAveragePRDurationBySize()}
+          />
           <Row gutter={30} style={{ marginTop: 30 }}>
             <Col span={12}>
-              <AverageDuration
+              <AverageDurationCard
                 title="Average Pull Request Merge Time"
                 duration={getAverageDuration(pullRequests, "", "MERGED").duration}
               />
             </Col>
             <Col span={12}>
-              <AverageDuration
+              <AverageDurationCard
                 title="Average Issue Close Time"
                 duration={getAverageDuration(issues).duration}
               />

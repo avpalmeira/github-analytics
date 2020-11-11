@@ -1,5 +1,7 @@
-import AverageDuration from './AverageDuration';
+import AverageDurationCard from './AverageDurationCard';
+import BarChartCard from './BarChartCard';
 
 export {
-  AverageDuration,
+  AverageDurationCard,
+  BarChartCard,
 }
