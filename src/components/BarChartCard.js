@@ -18,14 +18,14 @@ const BarChartCard = (props) => {
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload) {
       return (
-        <div style={{ border: "1px solid black", padding: 10, backgroundColor: "white" }}>
-          <div style={{ textAlign: "center", fontWeight: "bold" }}>{label}</div>
-          <div style={{ display: "flex", fontSize: 16 }}>
-            <span style={{ marginRight: 10 }}>Average Time</span>
+        <div className="tooltip">
+          <div className="tooltip-label">{label}</div>
+          <div className="tooltip-text">
+            <span>Average Time</span>
             <span>{payload[0].payload.duration}h</span>
           </div>
-          <div style={{ display: "flex", fontSize: 16 }}>
-            <span style={{ marginRight: 10 }}>Pull Requests</span>
+          <div className="tooltip-text">
+            <span>Pull Requests</span>
             <span>{payload[0].payload.quantity}</span>
           </div>
         </div>

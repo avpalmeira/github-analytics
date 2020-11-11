@@ -50,7 +50,7 @@ function App() {
             value={repoOwner}
             onChange={(e) => setRepoOwner(e.target.value)}
             placeholder="Repository Owner"
-            style={{ width: "50%", marginBottom: 20 }}
+            className="input top-input"
           />
           <Search
             value={repository}
@@ -58,7 +58,8 @@ function App() {
             onSearch={() => fetchRepositoryInfo()}
             placeholder="Repository Name"
             enterButton
-            style={{ width: "50%" }} />
+            className="input"
+          />
         </Header>
         <Content className="content">
           <BarChartCard

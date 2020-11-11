@@ -39,6 +39,14 @@ code {
   padding: 30px;
 }
 
+.input {
+  width: 50% !important;
+}
+
+.top-input {
+  margin-bottom: 20px !important;
+}
+
 .avg-time-card-text {
   text-align: center;
   font-size: 1.75rem;
@@ -46,3 +54,22 @@ code {
   margin: 0;
 }
 
+.tooltip {
+  border: 1px solid black;
+  padding: 10px;
+  background-color: white;
+}
+
+.tooltip-label {
+  text-align: center;
+  font-weight: bold;
+}
+
+.tooltip-text {
+  display: flex;
+  font-size: 16px;
+}
+
+.tooltip-text > span:first-child {
+  margin-right: 10px;
+}

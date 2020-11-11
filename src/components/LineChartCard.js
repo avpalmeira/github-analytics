@@ -18,18 +18,18 @@ const LineChartCard = (props) => {
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload) {
       return (
-        <div style={{ border: "1px solid black", padding: 10, backgroundColor: "white" }}>
-          <div style={{ textAlign: "center", fontWeight: "bold" }}>Pull Requests : {label}</div>
-          <div style={{ display: "flex", fontSize: 16 }}>
-            <span style={{ marginRight: 10 }}>Merged</span>
+        <div className="tooltip">
+          <div className="tooltip-label">Pull Requests : {label}</div>
+          <div className="tooltip-text">
+            <span>Merged</span>
             <span>{payload[0].payload.merged}</span>
           </div>
-          <div style={{ display: "flex", fontSize: 16 }}>
-            <span style={{ marginRight: 10 }}>Opened</span>
+          <div className="tooltip-text">
+            <span>Opened</span>
             <span>{payload[0].payload.open}</span>
           </div>
-          <div style={{ display: "flex", fontSize: 16 }}>
-            <span style={{ marginRight: 10 }}>Closed</span>
+          <div className="tooltip-text">
+            <span>Closed</span>
             <span>{payload[0].payload.closed}</span>
           </div>
         </div>
@@ -49,7 +49,7 @@ const LineChartCard = (props) => {
             <Tooltip content={<CustomTooltip />} />
             <Line type="monotone" dataKey="open" stroke="#8884d8" />
             <Line type="monotone" dataKey="closed" stroke="#82ca9d" />
-            <Line type="monotone" dataKey="merged" stroke="#8884d8" />
+            <Line type="monotone" dataKey="merged" stroke="#ff7300" />
           </LineChart>
         </ResponsiveContainer>
       ) : <p className="avg-time-card-text">Not enough data to show results</p>}
