@@ -8,6 +8,7 @@ const getAverageActionDurationBySize = (objects) => {
   return response;
 }
 
+// REFACTOR!
 const getAverageActionDuration = (objects, size = "", state = "CLOSED") => {
   let averageDuration = 10;
   if (objects[0] && objects[0].node) {
@@ -59,7 +60,7 @@ const clearActionHistory = (history) => {
 const getActionHistory = (objects) => {
   const response = generateActionHistoryEmpty();
   if (objects[0] && objects[0].node) {
-    const oneMonthAgo = moment().subtract(30, 'days');
+    const oneMonthAgo = moment().subtract(1, 'month');
     objects.forEach((obj) => {
       let created = moment(obj.node.createdAt);
       let merged = moment(obj.node.mergedAt);

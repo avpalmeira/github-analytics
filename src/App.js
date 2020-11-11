@@ -18,7 +18,7 @@ import {
   getAverageActionDurationBySize,
   getAverageActionDuration,
   getActionHistory,
-} from './helpers/dateTimeDataHelper';
+} from './helpers';
 import logo from './assets/logo.png';
 import 'antd/dist/antd.css';
 
