@@ -6,7 +6,10 @@ import {
   Layout,
   Row,
 } from 'antd';
-import api from './services/api';
+import {
+  fetchIssues,
+  fetchPullRequests,
+} from './services';
 import {
   AverageDurationCard,
   BarChartCard,
@@ -18,6 +21,7 @@ import 'antd/dist/antd.css';
 function App() {
   const [ issues, setIssues ] = useState([]);
   const [ pullRequests, setPullRequests ] = useState([]);
+
   const [ repoOwner, setRepoOwner ] = useState("");
   const [ repository, setRepository ] = useState("");
 
@@ -109,61 +113,12 @@ function App() {
     return response;
   }
 
-  const fetchRepositoryInfo = () => {
+  const fetchRepositoryInfo = async () => {
 
-    const fetchIssues = async () => {
-      const issuesQuery = `
-      query IssuesClosingTime { 
-        repositoryOwner(login: "${repoOwner}") {
-          repository(name: "${repository}") {
-            issues(last: 100) {
-              totalCount
-              edges {
-                node {
-                  state
-                  createdAt
-                  closedAt
-                }
-              }
-            }
-          }
-        }
-      }`;
-      const res = await api.post('', { query: issuesQuery });
-
-      // refactor! generate array and push data
-      const retrievedIssues = res.data.data.repositoryOwner.repository.issues.edges;
-      setIssues(retrievedIssues);
-    }
-    const fetchPullRequests = async () => {
-      const pullRequestsQuery = `
-      query IssuesClosingTime { 
-        repositoryOwner(login: "${repoOwner}") {
-          repository(name: "${repository}") {
-            pullRequests(last: 100) {
-              totalCount
-              edges {
-                node {
-                  state
-                  createdAt
-                  closedAt
-                  mergedAt
-                  additions
-                  deletions
-                }
-              }
-            }
-          }
-        }
-      }`;
-      const res = await api.post('', { query: pullRequestsQuery });
-
-      // refactor! generate array and push data
-      const retrievedPRs = res.data.data.repositoryOwner.repository.pullRequests.edges;
-      setPullRequests(retrievedPRs);
-    }
-    fetchIssues();
-    fetchPullRequests();
+    const retrievedIssues = await fetchIssues(repoOwner, repository);
+    const retrievedPullRequests = await fetchPullRequests(repoOwner, repository);
+    setIssues(retrievedIssues);
+    setPullRequests(retrievedPullRequests);
   }
 
   return (

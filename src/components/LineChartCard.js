@@ -60,7 +60,7 @@ const LineChartCard = (props) => {
 LineChartCard.propTypes = {
   title: PropTypes.string,
   data: PropTypes.array,
-  originData: PropTypes.array,
+  originData: PropTypes.object,
 };
 
 export default LineChartCard;
