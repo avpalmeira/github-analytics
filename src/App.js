@@ -1,8 +1,27 @@
 import React, { useState } from 'react';
-import { BarChart, Bar, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 import moment from 'moment';
-import { Card, Col, Input, Layout, Row } from 'antd';
+import {
+  Card,
+  Col,
+  Input,
+  Layout,
+  Row,
+} from 'antd';
 import api from './services/api';
+import {
+  AverageDuration,
+} from './components';
 import logo from './assets/logo.png';
 import 'antd/dist/antd.css';
 
@@ -52,13 +71,6 @@ function App() {
       );
     }
     return null;
-  }
-
-  const formatDayHourMinute = (duration) => {
-    if (isNaN(duration.get('days'))) {
-      return 'Not enough data to show results';
-    }
-    return `${duration.get('days')}days ${duration.get('hours')}h${duration.get('minutes')}m`;
   }
 
   // use same method as above with new params: size
@@ -243,18 +255,16 @@ function App() {
           </Card>
           <Row gutter={30} style={{ marginTop: 30 }}>
             <Col span={12}>
-              <Card title="Average Pull Request Merge Time">
-                <p className="avg-time-card-text">
-                  {formatDayHourMinute(getAverageDuration(pullRequests, "", "MERGED").duration)}
-                </p>
-              </Card>
+              <AverageDuration
+                title="Average Pull Request Merge Time"
+                duration={getAverageDuration(pullRequests, "", "MERGED").duration}
+              />
             </Col>
             <Col span={12}>
-              <Card className="avg-time-card" title="Average Issue Close Time">
-                <p className="avg-time-card-text">
-                  {formatDayHourMinute(getAverageDuration(issues).duration)}
-                </p>
-              </Card>
+              <AverageDuration
+                title="Average Issue Close Time"
+                duration={getAverageDuration(issues).duration}
+              />
             </Col>
           </Row>
           <Card title="Month Summary" style={{ marginTop: 30 }}>
