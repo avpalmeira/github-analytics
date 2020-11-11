@@ -13,6 +13,8 @@ A Dashboard Application that shows metrics about GitHub's projects such as statu
 * Ant Design
 * Axios
 * Create React App
+* Moment
+* Recharts
 
 ### Tools
 
