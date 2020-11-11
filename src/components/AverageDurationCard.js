@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Card } from 'antd';
-import { formatDayHourMinute } from '../helpers/dateTimeHelper';
+import { formatDayHourMinute } from '../helpers/dateTimeDataHelper';
 
 const AverageDuration = (props) => {
   return (
