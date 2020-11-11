@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { BarChart, Bar, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
 import moment from 'moment';
 import { Card, Col, Input, Layout, Row } from 'antd';
@@ -11,6 +11,8 @@ function App() {
   const [ issues, setIssues ] = useState([]);
   const [ pullRequests, setPullRequests ] = useState([]);
   const [ prHistory, setPRHistory ] = useState([]);
+  const [ repoOwner, setRepoOwner ] = useState("");
+  const [ repository, setRepository ] = useState("");
 
   const CustomTooltip1 = ({ active, payload, label }) => {
     if (active && payload) {
@@ -55,6 +57,9 @@ function App() {
   }
 
   const formatDayHourMinute = (duration) => {
+    if (isNaN(duration.get('days'))) {
+      return 'Not enough data to show results';
+    }
     return `${duration.get('days')}days ${duration.get('hours')}h${duration.get('minutes')}m`;
   }
 
@@ -63,6 +68,9 @@ function App() {
     let averageDuration = 10;
     if (objects[0] && objects[0].node) {
       objects = objects.filter((obj) => obj.node.state === state);
+      if (objects === []) {
+        return {};
+      }
       if (size === "large") {
         objects = objects.filter((obj) => {
           return obj.node.additions + obj.node.deletions > 1000
@@ -89,7 +97,7 @@ function App() {
     return { quantity: objects.length, duration };
   }
 
-  useEffect(() => {
+  const fetchRepositoryInfo = () => {
 
     const generatePRHistoryEmpty = () => {
       const history = {};
@@ -136,8 +144,8 @@ function App() {
     const fetchIssues = async () => {
       const issuesQuery = `
       query IssuesClosingTime { 
-        repositoryOwner(login: "google") {
-          repository(name: "web-stories-wp") {
+        repositoryOwner(login: "${repoOwner}") {
+          repository(name: "${repository}") {
             issues(last: 100) {
               totalCount
               edges {
@@ -154,14 +162,15 @@ function App() {
       const res = await api.post('', { query: issuesQuery });
 
       // refactor! generate array and push data
+      console.log(res.data);
       const retrievedIssues = res.data.data.repositoryOwner.repository.issues.edges;
       setIssues(retrievedIssues);
     }
     const fetchPullRequests = async () => {
       const pullRequestsQuery = `
       query IssuesClosingTime { 
-        repositoryOwner(login: "google") {
-          repository(name: "web-stories-wp") {
+        repositoryOwner(login: "${repoOwner}") {
+          repository(name: "${repository}") {
             pullRequests(last: 100) {
               totalCount
               edges {
@@ -181,6 +190,7 @@ function App() {
       const res = await api.post('', { query: pullRequestsQuery });
 
       // refactor! generate array and push data
+      console.log(res.data);
       const retrievedPRs = res.data.data.repositoryOwner.repository.pullRequests.edges;
       setPullRequests(retrievedPRs);
       const retrievedHistory = clearPRHistoryKeys(pullRequestHistory(retrievedPRs));
@@ -188,7 +198,7 @@ function App() {
     }
     fetchIssues();
     fetchPullRequests();
-  }, []);
+  }
 
   const { Header, Content, Sider } = Layout;
   const { Search } = Input;
@@ -208,11 +218,23 @@ function App() {
       </Sider>
       <Layout>
         <Header className="topnav">
-          <Input placeholder="Repository Owner" style={{ width: "50%", marginBottom: 20 }} />
-          <Search placeholder="Repository Name" enterButton style={{ width: "50%" }} />
+          <Input
+            value={repoOwner}
+            onChange={(e) => setRepoOwner(e.target.value)}
+            placeholder="Repository Owner"
+            style={{ width: "50%", marginBottom: 20 }}
+          />
+          <Search
+            value={repository}
+            onChange={(e) => setRepository(e.target.value)}
+            onSearch={() => fetchRepositoryInfo()}
+            placeholder="Repository Name"
+            enterButton
+            style={{ width: "50%" }} />
         </Header>
         <Content className="content">
           <Card title="Average Merge Time by Pull Request Size">
+            {getAveragePRDurationBySize()[0].duration ? (
             <BarChart width={900} height={400} data={getAveragePRDurationBySize()}>
               <CartesianGrid stroke="#ccc" />
               <XAxis dataKey="name"/>
@@ -220,6 +242,7 @@ function App() {
               <Tooltip content={<CustomTooltip2 />} />
               <Bar dataKey="duration" fill="#8884d8"/>
             </BarChart>
+            ) : <p>Not enough data to show results</p>}
           </Card>
           <Row gutter={30} style={{ marginTop: 30 }}>
             <Col span={12}>
