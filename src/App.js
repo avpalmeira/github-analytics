@@ -5,12 +5,10 @@ import { Card, Col, Input, Layout, Row } from 'antd';
 import api from './services/api';
 import logo from './assets/logo.png';
 import 'antd/dist/antd.css';
-import './App.css';
 
 function App() {
   const [ issues, setIssues ] = useState([]);
   const [ pullRequests, setPullRequests ] = useState([]);
-  const [ prHistory, setPRHistory ] = useState([]);
   const [ repoOwner, setRepoOwner ] = useState("");
   const [ repository, setRepository ] = useState("");
 
@@ -97,49 +95,50 @@ function App() {
     return { quantity: objects.length, duration };
   }
 
+
+  const generatePRHistoryEmpty = () => {
+    const history = {};
+    const end = moment();
+    let current = moment().subtract(1, 'month');
+    while (current.format('DD.MM') !== end.format('DD.MM')) {
+      let key = current.format('DD.MM');
+      history[current.format(key)] = { key, open: 0, merged: 0, closed: 0 };
+      current = current.add(1, 'day');
+    }
+    return history;
+  }
+
+  const pullRequestHistory = (objects) => {
+    const response = generatePRHistoryEmpty();
+    if (objects[0] && objects[0].node) {
+      const oneMonthAgo = moment().subtract(15, 'days');
+      objects.forEach((obj) => {
+        let created = moment(obj.node.createdAt);
+        let merged = moment(obj.node.mergedAt);
+        let closed = moment(obj.node.closedAt);
+        if (created.isAfter(oneMonthAgo) && response[created.format('DD.MM')]) {
+          response[created.format('DD.MM')]['open']++;
+        }
+        if (merged && merged.isAfter(oneMonthAgo) && response[merged.format('DD.MM')]) {
+          response[merged.format('DD.MM')]['merged']++;
+        }
+        if (closed && closed.isAfter(oneMonthAgo) && response[closed.format('DD.MM')]) {
+          response[closed.format('DD.MM')]['closed']++;
+        }
+      });
+    }
+    return response;
+  }
+
+  const clearPRHistoryKeys = (history) => {
+    const response = [];
+    for (let key in history) {
+      response.push(history[key]);
+    }
+    return response;
+  }
+
   const fetchRepositoryInfo = () => {
-
-    const generatePRHistoryEmpty = () => {
-      const history = {};
-      const end = moment();
-      let current = moment().subtract(1, 'month');
-      while (current.format('DD.MM') !== end.format('DD.MM')) {
-        let key = current.format('DD.MM');
-        history[current.format(key)] = { key, open: 0, merged: 0, closed: 0 };
-        current = current.add(1, 'day');
-      }
-      return history;
-    }
-
-    const pullRequestHistory = (objects) => {
-      const response = generatePRHistoryEmpty();
-      if (objects[0] && objects[0].node) {
-        const oneMonthAgo = moment().subtract(15, 'days');
-        objects.forEach((obj) => {
-          let created = moment(obj.node.createdAt);
-          let merged = moment(obj.node.mergedAt);
-          let closed = moment(obj.node.closedAt);
-          if (created.isAfter(oneMonthAgo) && response[created.format('DD.MM')]) {
-            response[created.format('DD.MM')]['open']++;
-          }
-          if (merged && merged.isAfter(oneMonthAgo) && response[merged.format('DD.MM')]) {
-            response[merged.format('DD.MM')]['merged']++;
-          }
-          if (closed && closed.isAfter(oneMonthAgo) && response[closed.format('DD.MM')]) {
-            response[closed.format('DD.MM')]['closed']++;
-          }
-        });
-      }
-      return response;
-    }
-
-    const clearPRHistoryKeys = (history) => {
-      const response = [];
-      for (let key in history) {
-        response.push(history[key]);
-      }
-      return response;
-    }
 
     const fetchIssues = async () => {
       const issuesQuery = `
@@ -162,7 +161,6 @@ function App() {
       const res = await api.post('', { query: issuesQuery });
 
       // refactor! generate array and push data
-      console.log(res.data);
       const retrievedIssues = res.data.data.repositoryOwner.repository.issues.edges;
       setIssues(retrievedIssues);
     }
@@ -190,11 +188,8 @@ function App() {
       const res = await api.post('', { query: pullRequestsQuery });
 
       // refactor! generate array and push data
-      console.log(res.data);
       const retrievedPRs = res.data.data.repositoryOwner.repository.pullRequests.edges;
       setPullRequests(retrievedPRs);
-      const retrievedHistory = clearPRHistoryKeys(pullRequestHistory(retrievedPRs));
-      setPRHistory(retrievedHistory);
     }
     fetchIssues();
     fetchPullRequests();
@@ -263,9 +258,9 @@ function App() {
             </Col>
           </Row>
           <Card title="Month Summary" style={{ marginTop: 30 }}>
-            {prHistory !== [] ? (
+            {pullRequests.length > 0 ? (
               <ResponsiveContainer width="100%" height={400}>
-                <LineChart margin={{ left: -20 }} data={prHistory}>
+                <LineChart margin={{ left: -20 }} data={clearPRHistoryKeys(pullRequestHistory(pullRequests))}>
                   <CartesianGrid stroke="#ccc" />
                   <XAxis dataKey="key" />
                   <YAxis />
