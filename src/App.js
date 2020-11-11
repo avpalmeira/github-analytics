@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BarChart, Bar, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
+import { BarChart, Bar, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import moment from 'moment';
 import { Card, Col, Input, Layout, Row } from 'antd';
 import api from './services/api';
@@ -235,39 +235,47 @@ function App() {
         <Content className="content">
           <Card title="Average Merge Time by Pull Request Size">
             {getAveragePRDurationBySize()[0].duration ? (
-            <BarChart width={900} height={400} data={getAveragePRDurationBySize()}>
-              <CartesianGrid stroke="#ccc" />
-              <XAxis dataKey="name"/>
-              <YAxis/>
-              <Tooltip content={<CustomTooltip2 />} />
-              <Bar dataKey="duration" fill="#8884d8"/>
-            </BarChart>
-            ) : <p>Not enough data to show results</p>}
+            <ResponsiveContainer width="100%" height={400}>
+              <BarChart width={900} height={400} data={getAveragePRDurationBySize()}>
+                <CartesianGrid stroke="#ccc" />
+                <XAxis dataKey="name"/>
+                <YAxis/>
+                <Tooltip content={<CustomTooltip2 />} />
+                <Bar dataKey="duration" fill="#8884d8"/>
+              </BarChart>
+            </ResponsiveContainer>
+            ) : <p className="avg-time-card-text">Not enough data to show results</p>}
           </Card>
           <Row gutter={30} style={{ marginTop: 30 }}>
             <Col span={12}>
               <Card title="Average Pull Request Merge Time">
-                <p>{formatDayHourMinute(getAverageDuration(pullRequests, "", "MERGED").duration)}</p>
+                <p className="avg-time-card-text">
+                  {formatDayHourMinute(getAverageDuration(pullRequests, "", "MERGED").duration)}
+                </p>
               </Card>
             </Col>
             <Col span={12}>
-              <Card title="Average Issue Close Time">
-                <p>{formatDayHourMinute(getAverageDuration(issues).duration)}</p>
+              <Card className="avg-time-card" title="Average Issue Close Time">
+                <p className="avg-time-card-text">
+                  {formatDayHourMinute(getAverageDuration(issues).duration)}
+                </p>
               </Card>
             </Col>
           </Row>
           <Card title="Month Summary" style={{ marginTop: 30 }}>
             {prHistory !== [] ? (
-              <LineChart width={900} height={400} margin={{ left: -20 }} data={prHistory}>
-                <CartesianGrid stroke="#ccc" />
-                <XAxis dataKey="key" />
-                <YAxis />
-                <Tooltip content={<CustomTooltip1 />} />
-                <Line type="monotone" dataKey="open" stroke="#8884d8" />
-                <Line type="monotone" dataKey="closed" stroke="#82ca9d" />
-                <Line type="monotone" dataKey="merged" stroke="#8884d8" />
-              </LineChart>
-            ) : null }
+              <ResponsiveContainer width="100%" height={400}>
+                <LineChart margin={{ left: -20 }} data={prHistory}>
+                  <CartesianGrid stroke="#ccc" />
+                  <XAxis dataKey="key" />
+                  <YAxis />
+                  <Tooltip content={<CustomTooltip1 />} />
+                  <Line type="monotone" dataKey="open" stroke="#8884d8" />
+                  <Line type="monotone" dataKey="closed" stroke="#82ca9d" />
+                  <Line type="monotone" dataKey="merged" stroke="#8884d8" />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : <p className="avg-time-card-text">Not enough data to show results</p>}
           </Card>
         </Content>
       </Layout>

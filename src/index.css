@@ -38,3 +38,11 @@ code {
 .content {
   padding: 30px;
 }
+
+.avg-time-card-text {
+  text-align: center;
+  font-size: 1.75rem;
+  font-weight: bold;
+  margin: 0;
+}
+
