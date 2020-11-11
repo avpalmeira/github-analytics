@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
+import { BarChart, Bar, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
 import moment from 'moment';
 import { Card, Col, Input, Layout, Row } from 'antd';
 import api from './services/api';
@@ -12,7 +12,7 @@ function App() {
   const [ pullRequests, setPullRequests ] = useState([]);
   const [ prHistory, setPRHistory ] = useState([]);
 
-  const CustomTooltip = ({ active, payload, label }) => {
+  const CustomTooltip1 = ({ active, payload, label }) => {
     if (active && payload) {
       return (
         <div style={{ border: "1px solid black", padding: 10, backgroundColor: "white" }}>
@@ -35,12 +35,27 @@ function App() {
     return null;
   }
 
-  const formatDayHourMinute = (duration) => {
-    return `${duration.get('days')}days ${duration.get('hours')}h${duration.get('minutes')}m`;
+  const CustomTooltip2 = ({ active, payload, label }) => {
+    if (active && payload) {
+      return (
+        <div style={{ border: "1px solid black", padding: 10, backgroundColor: "white" }}>
+          <div style={{ textAlign: "center", fontWeight: "bold" }}>{label}</div>
+          <div style={{ display: "flex", fontSize: 16 }}>
+            <span style={{ marginRight: 10 }}>Average Time</span>
+            <span>{payload[0].payload.duration}h</span>
+          </div>
+          <div style={{ display: "flex", fontSize: 16 }}>
+            <span style={{ marginRight: 10 }}>Pull Requests</span>
+            <span>{payload[0].payload.quantity}</span>
+          </div>
+        </div>
+      );
+    }
+    return null;
   }
 
-  const formatHour = (duration) => {
-    return `${duration.get('hours')}h`;
+  const formatDayHourMinute = (duration) => {
+    return `${duration.get('days')}days ${duration.get('hours')}h${duration.get('minutes')}m`;
   }
 
   // use same method as above with new params: size
@@ -68,6 +83,9 @@ function App() {
       averageDuration = sumOfDurations / objects.length;
     }
     const duration = moment.duration(averageDuration);
+    if (size !== "") {
+      return { quantity: objects.length, duration: duration.get('hours') };
+    }
     return { quantity: objects.length, duration };
   }
 
@@ -175,6 +193,14 @@ function App() {
   const { Header, Content, Sider } = Layout;
   const { Search } = Input;
 
+  const getAveragePRDurationBySize = () => {
+    const response = [];
+    response[0] = { name: 'Small', ...getAverageDuration(pullRequests, "small", "MERGED") };
+    response[1] = { name: 'Medium', ...getAverageDuration(pullRequests, "medium", "MERGED") };
+    response[2] = { name: 'Large', ...getAverageDuration(pullRequests, "large", "MERGED") };
+    return response;
+  }
+
   return (
     <Layout className="main">
       <Sider className="sidebar">
@@ -187,51 +213,43 @@ function App() {
         </Header>
         <Content className="content">
           <Card title="Average Merge Time by Pull Request Size">
-            <p>Content</p>
+            <BarChart width={900} height={400} data={getAveragePRDurationBySize()}>
+              <CartesianGrid stroke="#ccc" />
+              <XAxis dataKey="name"/>
+              <YAxis/>
+              <Tooltip content={<CustomTooltip2 />} />
+              <Bar dataKey="duration" fill="#8884d8"/>
+            </BarChart>
           </Card>
           <Row gutter={30} style={{ marginTop: 30 }}>
             <Col span={12}>
               <Card title="Average Pull Request Merge Time">
-                Time
+                <p>{formatDayHourMinute(getAverageDuration(pullRequests, "", "MERGED").duration)}</p>
               </Card>
             </Col>
             <Col span={12}>
               <Card title="Average Issue Close Time">
-                Time
+                <p>{formatDayHourMinute(getAverageDuration(issues).duration)}</p>
               </Card>
             </Col>
           </Row>
           <Card title="Month Summary" style={{ marginTop: 30 }}>
-            <p>Content</p>
+            {prHistory !== [] ? (
+              <LineChart width={900} height={400} margin={{ left: -20 }} data={prHistory}>
+                <CartesianGrid stroke="#ccc" />
+                <XAxis dataKey="key" />
+                <YAxis />
+                <Tooltip content={<CustomTooltip1 />} />
+                <Line type="monotone" dataKey="open" stroke="#8884d8" />
+                <Line type="monotone" dataKey="closed" stroke="#82ca9d" />
+                <Line type="monotone" dataKey="merged" stroke="#8884d8" />
+              </LineChart>
+            ) : null }
           </Card>
         </Content>
       </Layout>
     </Layout>
   );
-
-  // return (
-  //   <div className="App">
-  //     <header className="App-header">
-  //       <p>Querying data from the Github API:</p>
-  //       {prHistory !== [] ? (
-  //       <LineChart width={900} height={400} margin={{ left: -20 }} data={prHistory}>
-  //         <Line type="monotone" dataKey="open" stroke="#8884d8" />
-  //         <Line type="monotone" dataKey="closed" stroke="#82ca9d" />
-  //         <Line type="monotone" dataKey="merged" stroke="#8884d8" />
-  //         <XAxis dataKey="key" />
-  //         <YAxis />
-  //         <CartesianGrid stroke="#ccc" />
-  //         <Tooltip content={<CustomTooltip />} />
-  //       </LineChart>
-  //       ) : null }
-  //       <p>Average Duration of Closing of Issues: {formatDayHourMinute(getAverageDuration(issues).duration)}</p>
-  //       <p>Average Duration of Merged PRs: {formatDayHourMinute(getAverageDuration(pullRequests, "", "MERGED").duration)}</p>
-  //       <p>Average Duration of Small PRs: {formatHour(getAverageDuration(pullRequests, "small", "MERGED").duration)}</p>
-  //       <p>Average Duration of Medium PRs: {formatHour(getAverageDuration(pullRequests, "medium", "MERGED").duration)}</p>
-  //       <p>Average Duration of Large PRs: {formatHour(getAverageDuration(pullRequests, "large", "MERGED").duration)}</p>
-  //     </header>
-  //   </div>
-  // );
 }
 
 export default App;
